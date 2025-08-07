@@ -41,14 +41,14 @@ submit.TextColor3 = Color3.new(1,1,1)
 submit.Font = Enum.Font.GothamBold
 
 submit.MouseButton1Click:Connect(function()
-	if textbox.Text == correctKey then
-		gui:Destroy()
-	else
-		player:Kick("Wrong key!")
-	end
+    if textbox.Text == correctKey then
+        gui:Destroy()
+    else
+        player:Kick("Wrong key!")
+    end
 end)
 
--- Wait until key is entered
+-- THIS IS THE IMPORTANT WAIT LOOP TO FIX THE GUI SHOWING ISSUE
 repeat wait() until not gui or gui.Parent == nil
 
 -- === HOOPZ FEATURES (Net Script with Aimbot) ===
@@ -63,47 +63,44 @@ mainGui.Name = "NetGui"
 mainGui.ResetOnSpawn = false
 
 local function createButton(text, posY)
-	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0, 160, 0, 50)
-	btn.Position = UDim2.new(0.5, -80, 0, posY)
-	btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	btn.Text = text
-	btn.TextScaled = true
-	btn.Font = Enum.Font.GothamBold
-	btn.Parent = mainGui
-	return btn
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 160, 0, 50)
+    btn.Position = UDim2.new(0.5, -80, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Text = text
+    btn.TextScaled = true
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = mainGui
+    return btn
 end
-
--- Remove shoot boost button (not needed)
 
 -- Aimbot Implementation
-local basket = workspace:WaitForChild("Basket") -- Change if basket name differs
-local hoop = basket:WaitForChild("Hoop") -- Hoop part to target
+local basket = workspace:WaitForChild("Basket") -- Adjust this if your basket name differs
+local hoop = basket:WaitForChild("Hoop") -- Target hoop part
 
 local function getShotVelocity(startPos, targetPos, height, gravity)
-	-- Calculate velocity needed to hit target at targetPos with given arc height
-	local displacement = targetPos - startPos
-	local displacementXZ = Vector3.new(displacement.X, 0, displacement.Z)
-	local time = math.sqrt((2 * height) / gravity) + math.sqrt((2 * (displacement.Y - height)) / gravity)
-	local velocityY = math.sqrt(2 * gravity * height)
-	local velocityXZ = displacementXZ / time
-	return Vector3.new(velocityXZ.X, velocityY, velocityXZ.Z)
+    local displacement = targetPos - startPos
+    local displacementXZ = Vector3.new(displacement.X, 0, displacement.Z)
+    local time = math.sqrt((2 * height) / gravity) + math.sqrt((2 * (displacement.Y - height)) / gravity)
+    local velocityY = math.sqrt(2 * gravity * height)
+    local velocityXZ = displacementXZ / time
+    return Vector3.new(velocityXZ.X, velocityY, velocityXZ.Z)
 end
 
--- Auto shoot on jump or button press
+-- Auto shoot on touch or V key press
 uis.InputBegan:Connect(function(input, gameProcessed)
-	if gameProcessed then return end
-	if input.UserInputType == Enum.UserInputType.Touch or input.KeyCode == Enum.KeyCode.V then
-		if hrp and char.HoopzBall then
-			local startPos = hrp.Position
-			local targetPos = hoop.Position + Vector3.new(0, 5, 0) -- aim a bit above hoop center
-			local gravity = workspace.Gravity
-			local arcHeight = 15
-			local velocity = getShotVelocity(startPos, targetPos, arcHeight, gravity)
-			hrp.Velocity = velocity
-		end
-	end
+    if gameProcessed then return end
+    if input.UserInputType == Enum.UserInputType.Touch or input.KeyCode == Enum.KeyCode.V then
+        if hrp and char:FindFirstChild("HoopzBall") then
+            local startPos = hrp.Position
+            local targetPos = hoop.Position + Vector3.new(0, 5, 0)
+            local gravity = workspace.Gravity
+            local arcHeight = 15
+            local velocity = getShotVelocity(startPos, targetPos, arcHeight, gravity)
+            hrp.Velocity = velocity
+        end
+    end
 end)
 
 -- Silent Aim (basic)
@@ -112,78 +109,78 @@ local mt = getrawmetatable(game)
 local backup = mt.__namecall
 setreadonly(mt, false)
 mt.__namecall = newcclosure(function(self, ...)
-	local args = {...}
-	if self.Name == "ShootEvent" and silentAim then
-		args[2] = hoop.Position + Vector3.new(0, 5, 0) -- target above hoop center
-		return backup(self, unpack(args))
-	end
-	return backup(self, ...)
+    local args = {...}
+    if self.Name == "ShootEvent" and silentAim then
+        args[2] = hoop.Position + Vector3.new(0, 5, 0)
+        return backup(self, unpack(args))
+    end
+    return backup(self, ...)
 end)
 
 -- Auto Green
 local autoGreen = true
 RunService.RenderStepped:Connect(function()
-	if autoGreen and char:FindFirstChild("HoopzBall") then
-		char.HoopzBall:SetAttribute("Green", true)
-	end
+    if autoGreen and char:FindFirstChild("HoopzBall") then
+        char.HoopzBall:SetAttribute("Green", true)
+    end
 end)
 
 -- Anti Lock Button
 local antiLock = createButton("🌀 Anti Lock", 460)
 local lockOn = false
 antiLock.MouseButton1Click:Connect(function()
-	lockOn = not lockOn
-	antiLock.Text = lockOn and "🌀 Anti Lock: ON" or "🌀 Anti Lock"
+    lockOn = not lockOn
+    antiLock.Text = lockOn and "🌀 Anti Lock: ON" or "🌀 Anti Lock"
 end)
 RunService.Heartbeat:Connect(function()
-	if lockOn and hrp then
-		hrp.RotVelocity = Vector3.new(0, 40, 0)
-	end
+    if lockOn and hrp then
+        hrp.RotVelocity = Vector3.new(0, 40, 0)
+    end
 end)
 
 -- Speed Boost Button
 local speedBoost = createButton("⚡ Speed", 520)
 local speedOn = false
 speedBoost.MouseButton1Click:Connect(function()
-	speedOn = not speedOn
-	local humanoid = char:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		humanoid.WalkSpeed = speedOn and 32 or 16
-	end
-	speedBoost.Text = speedOn and "⚡ Speed: ON" or "⚡ Speed"
+    speedOn = not speedOn
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.WalkSpeed = speedOn and 32 or 16
+    end
+    speedBoost.Text = speedOn and "⚡ Speed: ON" or "⚡ Speed"
 end)
 
 -- Jump Boost Button
 local jumpBoost = createButton("⬆️ Jump", 580)
 local jumpOn = false
 jumpBoost.MouseButton1Click:Connect(function()
-	jumpOn = not jumpOn
-	local humanoid = char:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		humanoid.JumpPower = jumpOn and 90 or 50
-	end
-	jumpBoost.Text = jumpOn and "⬆️ Jump: ON" or "⬆️ Jump"
+    jumpOn = not jumpOn
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        humanoid.JumpPower = jumpOn and 90 or 50
+    end
+    jumpBoost.Text = jumpOn and "⬆️ Jump: ON" or "⬆️ Jump"
 end)
 
 -- Drag buttons (mobile friendly)
 for _, btn in pairs(mainGui:GetChildren()) do
-	if btn:IsA("TextButton") then
-		local dragging, offset
-		btn.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.Touch then
-				dragging = true
-				offset = input.Position - btn.Position
-			end
-		end)
-		btn.InputChanged:Connect(function(input)
-			if dragging and input.UserInputType == Enum.UserInputType.Touch then
-				btn.Position = UDim2.new(0, input.Position.X - offset.X.Offset, 0, input.Position.Y - offset.Y.Offset)
-			end
-		end)
-		btn.InputEnded:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.Touch then
-				dragging = false
-			end
-		end)
-	end
+    if btn:IsA("TextButton") then
+        local dragging, offset
+        btn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                offset = input.Position - btn.Position
+            end
+        end)
+        btn.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.Touch then
+                btn.Position = UDim2.new(0, input.Position.X - offset.X.Offset, 0, input.Position.Y - offset.Y.Offset)
+            end
+        end)
+        btn.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end)
+    end
 end
