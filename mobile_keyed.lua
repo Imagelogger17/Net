@@ -42,11 +42,19 @@ submit.Font = Enum.Font.GothamBold
 
 submit.MouseButton1Click:Connect(function()
     if textbox.Text == correctKey then
-        gui:Destroy()
+        print("Key accepted!")
+        -- Do NOT destroy the GUI here
+        -- You can disable the textbox and button if you want instead:
+        textbox.ClearTextOnFocus = false
+        textbox.TextEditable = false
+        submit.Active = false
+        submit.AutoButtonColor = false
+        submit.Text = "Access Granted"
     else
         player:Kick("Wrong key!")
     end
 end)
+
 
 -- THIS IS THE IMPORTANT WAIT LOOP TO FIX THE GUI SHOWING ISSUE
 repeat wait() until not gui or gui.Parent == nil
