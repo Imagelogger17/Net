@@ -1,6 +1,4 @@
--- Hoopz Auto Camlock Shooter for Delta (Mobile + PC)
--- Made for Imagelogger17's Net repo
-
+-- Hoopz Auto Camlock Shooter (Delta GUI Fixed)
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -8,11 +6,9 @@ local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Change if your shooting event is named differently
 local shootEvent = ReplicatedStorage:WaitForChild("ShootingEvent")
-
 local autoEnabled = false
-local shootingRange = 18 -- studs from hoop
+local shootingRange = 18
 
 -- Find closest hoop
 local function getClosestHoop()
@@ -29,7 +25,7 @@ local function getClosestHoop()
     return closest, closestDist
 end
 
--- Smoothly turn camera
+-- Smoothly look at hoop
 local function smoothLookAt(targetPos, duration)
     local startTime = tick()
     local startCFrame = Camera.CFrame
@@ -46,19 +42,16 @@ local function smoothLookAt(targetPos, duration)
     end)
 end
 
--- Auto shoot loop
+-- Auto shooting loop
 RunService.RenderStepped:Connect(function()
     if autoEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local hoop, dist = getClosestHoop()
         if hoop and dist <= shootingRange then
             local originalCFrame = Camera.CFrame
-
             Camera.CameraType = Enum.CameraType.Scriptable
             smoothLookAt(hoop.Position, 0.15)
             task.wait(0.18)
-
             shootEvent:FireServer()
-
             task.wait(0.2)
             Camera.CFrame = originalCFrame
             Camera.CameraType = Enum.CameraType.Custom
@@ -66,8 +59,10 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Toggle button UI
+-- Create button UI
 local screenGui = Instance.new("ScreenGui")
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
 screenGui.Parent = PlayerGui
 
 local button = Instance.new("TextButton")
